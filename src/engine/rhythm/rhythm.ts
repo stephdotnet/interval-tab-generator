@@ -22,8 +22,14 @@ export interface RhythmOptions {
   tempo: number
 }
 
-/** Ticks per note, a quarter note being 48 ticks. */
+/** Ticks in a whole note: a quarter is 48, so that triplets are whole numbers too. */
+export const WHOLE_TICKS = 192
+
 const TICKS: Record<Subdivision, number> = { '4': 48, '8': 24, '8t': 16, '16': 12, '16t': 8 }
+
+export function noteTicks(subdivision: Subdivision): number {
+  return TICKS[subdivision]
+}
 
 export function isTuplet(subdivision: Subdivision): boolean {
   return subdivision.endsWith('t')
@@ -34,7 +40,9 @@ export function texDuration(subdivision: Subdivision): number {
   return Number(subdivision.replace('t', ''))
 }
 
-const barTicks = (r: RhythmOptions) => r.tsNum * (192 / r.tsDen)
+export function barTicks(r: { tsNum: number; tsDen: number }): number {
+  return r.tsNum * (WHOLE_TICKS / r.tsDen)
+}
 
 export function notesPerBar(r: RhythmOptions): number {
   return barTicks(r) / TICKS[r.subdivision]

@@ -2,7 +2,8 @@
 
 ## Fait (v1)
 
-- Degrés chromatiques sur 12 toniques, orthographe selon la tonalité.
+- Degrés chromatiques sur 12 toniques (dont #2, #5, bb7), orthographe selon la tonalité.
+- Bibliothèque de gammes et d'arpèges : 9 familles, recherche, nommage automatique du titre.
 - Guitare 6/7/8 cordes, basse 4/5, accordages prédéfinis ou perso, cordes désactivables, plage de cases.
 - Doigtés : box (3 à 6 cases, extensions), CAGED, N notes par corde.
 - Enchaînement : une position, toutes, best path avec 3 presets et coût réglable.

@@ -17,6 +17,12 @@ function parse(tex: string) {
 
 const beatsOf = (score: model.Score) => score.tracks[0].staves[0].bars.map((bar) => bar.voices[0].beats)
 
+/** alphaTab playback ticks per quarter note. */
+const QUARTER = 960
+const barLength = (beats: model.Beat[]) => beats.reduce((sum, b) => sum + b.playbackDuration, 0)
+const restShape = (beats: model.Beat[]) =>
+  beats.map((b) => (b.isRest ? 'r' : 'n') + b.duration + (b.tupletNumerator > 0 ? 't' : '')).join(' ')
+
 const settings = (patch: (s: Settings) => void): Settings => {
   const s = structuredClone(DEFAULT_SETTINGS)
   patch(s)
@@ -54,7 +60,7 @@ describe('alphaTex', () => {
     const exercise = buildExercise(settings((s) => (s.navigation.positionIndex = 6)))
     const { score, diagnostics } = parse(exercise.tex)
     expect(diagnostics).toEqual([])
-    expect(score.title).toBe('C : 1 - 2')
+    expect(score.title).toBe('C seconde majeure (1 2)')
     expect(score.tempo).toBe(80)
     expect(score.tracks[0].staves[0].tuning).toEqual([64, 59, 55, 50, 45, 40])
     expect(score.tracks[0].playbackInfo.program).toBe(25)
@@ -62,11 +68,12 @@ describe('alphaTex', () => {
     const beats = beatsOf(score)
     expect(beats).toHaveLength(exercise.bars.length)
     exercise.bars.forEach((bar, b) => {
-      expect(beats[b]).toHaveLength(bar.length)
+      expect(barLength(beats[b])).toBe(QUARTER * 4)
       bar.forEach((slot, i) => {
         const beat = beats[b][i]
         if (!slot) {
-          expect(beat.isRest).toBe(true)
+          // Rests after the last note may be merged: whatever is at this index is a rest
+          expect(beat === undefined || beat.isRest).toBe(true)
           return
         }
         // alphaTab strings: 1 = lowest string
@@ -98,7 +105,32 @@ describe('alphaTex', () => {
     expect(new Set(beats.filter((b) => !b.isRest).map((b) => b.text))).toEqual(new Set(['Eb', 'Gb', 'Bb']))
   })
 
-  it('writes silent bars between positions with one rest per beat', () => {
+  it('completes bars with rests aligned on the beat', () => {
+    // 4 notes in 16th triplets: two triplet rests close the beat, then a quarter and a half
+    const exercise = buildExercise(
+      settings((s) => {
+        s.degrees = ['1', 'b3', '5']
+        s.pattern = { ...s.pattern, type: 'random', randomCount: 4 }
+        s.rhythm.subdivision = '16t'
+      }),
+    )
+    const { score, diagnostics } = parse(exercise.tex)
+    expect(diagnostics).toEqual([])
+    const bar = beatsOf(score)[0]
+    expect(restShape(bar)).toBe('n16t n16t n16t n16t r16t r16t r4 r2')
+    expect(barLength(bar)).toBe(QUARTER * 4)
+
+    // 5 sixteenths: a sixteenth to reach the half beat, an eighth to reach the beat, then a half
+    const straight = buildExercise(
+      settings((s) => {
+        s.pattern = { ...s.pattern, type: 'random', randomCount: 5 }
+        s.rhythm.subdivision = '16'
+      }),
+    )
+    expect(restShape(beatsOf(parse(straight.tex).score)[0])).toBe('n16 n16 n16 n16 n16 r16 r8 r2')
+  })
+
+  it('writes a whole silent bar with a single rest', () => {
     const exercise = buildExercise(
       settings((s) => {
         s.navigation.mode = 'all'
@@ -112,8 +144,8 @@ describe('alphaTex', () => {
     expect(beats).toHaveLength(exercise.bars.length)
     const silent = exercise.bars.findIndex((bar) => bar.every((slot) => !slot))
     expect(silent).toBeGreaterThan(0)
-    expect(beats[silent]).toHaveLength(4)
-    expect(beats[silent].every((b) => b.isRest && b.tupletNumerator === -1)).toBe(true)
+    expect(restShape(beats[silent])).toBe('r1')
+    beats.forEach((bar) => expect(barLength(bar)).toBe(QUARTER * 4))
   })
 
   it('renders an empty rest bar when there is nothing to play', () => {

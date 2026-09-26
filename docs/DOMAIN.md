@@ -4,10 +4,19 @@ Ce document explique **ce que fait le moteur et pourquoi**. Les tests vérifient
 
 ## Théorie
 
-- **Degrés chromatiques** : `1 b2 2 b3 3 4 #4 b5 5 b6 6 b7 7`, relatifs à la tonique. Pas de mode : « 3 » est toujours la tierce majeure. `#4` et `b5` sont distincts pour que l'orthographe soit juste (F# ou Gb en C). Si les deux sont choisis, ils désignent la même hauteur et le premier gagne (`TargetSet.byPitchClass`).
+- **Degrés chromatiques** : `1 b2 2 #2 b3 3 4 #4 b5 5 #5 b6 6 bb7 b7 7`, relatifs à la tonique. Pas de mode : « 3 » est toujours la tierce majeure. Les paires enharmoniques (`#2`/`b3`, `#4`/`b5`, `#5`/`b6`, `bb7`/`6`) existent pour que l'orthographe soit juste : accord augmenté C E G#, septième diminuée C Eb Gb Bbb, 7#9 avec D#, gamme altérée. Si deux degrés de même hauteur sont choisis, le premier dans l'ordre ci-dessus gagne (`TargetSet.byPitchClass`).
 - **Orthographe** (`spellDegree`) : la lettre est celle de la tonique décalée du numéro du degré (b3 en C : C + 2 lettres = E), puis on calcule l'altération. D'où `E#` pour la 7 de F#, `Bbb` pour la b6 de Db. Les 12 toniques ont une orthographe fixe : `C Db D Eb E F F# G Ab A Bb B`.
 - **Degré de référence** : la tonique si elle est choisie, sinon le plus petit degré choisi. Il sert aux paires d'intervalles et à l'option « commencer et finir sur le degré ».
 - Les noms de notes des accordages et de l'alphaTex utilisent des dièses (`midiToName`) : c'est de la technique, pas de l'affichage musical.
+
+## Bibliothèque de gammes et d'arpèges (`theory/library.ts`)
+
+- Familles : intervalles, triades, arpèges 4 sons, arpèges enrichis, pentatoniques et blues, modes de la gamme majeure, de la mineure mélodique, de la mineure harmonique, autres gammes (majeure harmonique, double harmonique, hongroise, napolitaines, par tons, diminuées, bebop, augmentée, Prométhée).
+- Une entrée = un nom, un symbole d'accord optionnel (affiché sur la tonique : Cm7b5), des degrés normalisés commençant par 1, d'autres noms pour la recherche (anglais, synonymes).
+- Tests : degrés valides et triés, ids uniques, pas de doublon de formule dans une famille, jamais deux degrés de même hauteur dans une entrée, orthographe vérifiée sur plusieurs cas.
+- **Formules à plusieurs noms** (1 2 3 5 6 = pentatonique majeure = 6/9) : le nom affiché (titre, résumé) suit `NAMING_PRIORITY`, les gammes passent avant les accords enrichis. Dans la liste, toutes les entrées correspondantes sont surlignées.
+- **Compromis** : l'ultralocrien s'écrit avec `3` au lieu de `b4`, faute de degré `b4`. La gamme énigmatique n'est pas proposée (il faudrait un `#6`). Ajouter un degré est possible mais agrandit la grille de l'UI : à discuter avant.
+- Le titre de l'exercice reprend le nom de la bibliothèque quand les degrés correspondent : `Cm7b5 (1 b3 b5 b7)`, `C dorien (1 2 b3 4 5 6 b7)`. Sinon : `C : 1 - 2 - #4`.
 
 ## Instrument
 
@@ -103,4 +112,6 @@ Un motif ordonne une liste de notes triées par hauteur.
 ## Rythme
 
 - Une subdivision unique pour tout l'exercice. Le calcul se fait en ticks (noire = 48). Une subdivision n'est acceptée que si elle remplit exactement la mesure, et, pour les triolets, par groupes de 3 complets.
-- Les dernières notes sont complétées par des silences de la même valeur (l'index des beats doit correspondre à `bars`). Une mesure entièrement silencieuse s'écrit avec un silence par temps.
+- Dans `bars`, une mesure incomplète est complétée par des cases vides (`null`), une par note manquante.
+- À l'export, ces silences de fin sont écrits comme un musicien les écrirait : on termine d'abord le groupe de triolet en cours avec des silences de triolet, puis on remplit avec les plus grandes valeurs alignées sur leur propre durée (demi-soupir sur un demi-temps, soupir sur un temps, demi-pause sur une demi-mesure...). Exemple en 4/4 : 5 doubles croches puis un quart de soupir, un demi-soupir et une demi-pause. Une mesure entièrement silencieuse devient une pause.
+- Seuls les silences après la dernière note sont regroupés, pour que chaque note garde son index de beat (synchronisation du manche).

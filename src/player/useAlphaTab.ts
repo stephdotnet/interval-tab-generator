@@ -46,7 +46,7 @@ export function useAlphaTab(
   useEffect(() => {
     const api = new AlphaTabApi(container.current!, {
       core: { logLevel: LogLevel.Warning, fontDirectory: import.meta.env.BASE_URL + 'font/' },
-      display: { layoutMode: LayoutMode.Page, scale: 1, padding: [16, 16, 16, 16] },
+      display: { layoutMode: LayoutMode.Page, scale: 1, padding: [16, 16, 16, 16], justifyLastSystem: true },
       notation: {
         elements: new Map([
           [NotationElement.EffectDynamics, false],

@@ -1,5 +1,5 @@
 import type { Slot, Subdivision } from '../rhythm/rhythm'
-import { isTuplet, texDuration } from '../rhythm/rhythm'
+import { barTicks, isTuplet, noteTicks, texDuration, WHOLE_TICKS } from '../rhythm/rhythm'
 import { midiToName } from '../theory/pitch'
 import { spellDegree, type Tonic } from '../theory/spelling'
 
@@ -38,7 +38,40 @@ function beat(slot: Slot, o: TexOptions): string {
   return tex + ' {txt ' + quote(o.labels === 'degree' ? note.degree : spellDegree(o.tonic, note.degree)) + '}'
 }
 
-/** Builds the alphaTex score of the exercise. Bar and beat indexes match the `bars` array. */
+// Rest values from a whole to a 32nd, in ticks
+const REST_TICKS = [192, 96, 48, 24, 12, 6]
+
+/**
+ * Rests completing a bar from `from` ticks: first the rest of the current tuplet group,
+ * then the largest values aligned on the beat, as a musician would write them.
+ */
+function fillWithRests(from: number, o: TexOptions, duration: string): string[] {
+  const end = barTicks(o)
+  const note = noteTicks(o.subdivision)
+  const out: string[] = []
+  let position = from
+  if (isTuplet(o.subdivision)) {
+    const tupletRests: string[] = []
+    while (position % (note * 3) !== 0 && position < end) {
+      tupletRests.push('r')
+      position += note
+    }
+    if (tupletRests.length) {
+      out.push(duration + ' ' + tupletRests.join(' '))
+    }
+  }
+  while (position < end) {
+    const rest = REST_TICKS.find((t) => position % t === 0 && position + t <= end) ?? REST_TICKS[REST_TICKS.length - 1]
+    out.push(':' + WHOLE_TICKS / rest + ' r')
+    position += rest
+  }
+  return out
+}
+
+/**
+ * Builds the alphaTex score of the exercise. Bar and beat indexes match the `bars` array for every
+ * note; only the rests after the last note of a bar are merged.
+ */
 export function toAlphaTex(bars: readonly Slot[][], o: TexOptions): string {
   const perBar = bars[0]?.length ?? o.tsNum
   const content = bars.length ? bars : [Array<Slot>(perBar).fill(null)]
@@ -52,10 +85,12 @@ export function toAlphaTex(bars: readonly Slot[][], o: TexOptions): string {
     '\\tuning (' + [...o.tuning].reverse().map(midiToName).join(' ') + ')',
     '\\instrument (' + o.program + ')',
   ]
-  // A bar of silence is written with one rest per beat rather than one per note
-  const restBar = ':' + o.tsDen + ' ' + Array(o.tsNum).fill('r').join(' ')
   const body = content
-    .map((bar) => (bar.every((slot) => !slot) ? restBar : duration + ' ' + bar.map((slot) => beat(slot, o)).join(' ')))
+    .map((bar) => {
+      const played = bar.slice(0, bar.findLastIndex((slot) => slot !== null) + 1)
+      const notes = played.length ? [duration + ' ' + played.map((slot) => beat(slot, o)).join(' ')] : []
+      return [...notes, ...fillWithRests(played.length * noteTicks(o.subdivision), o, duration)].join(' ')
+    })
     .join(' |\n')
   return header.join('\n') + '\n' + body
 }

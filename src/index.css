@@ -202,7 +202,7 @@ select {
 
 .degree-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .chip,
@@ -358,6 +358,73 @@ input[type='range'] {
   text-align: right;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+}
+
+/* Library of scales and arpeggios */
+
+.library {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.library-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.library-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 6px;
+}
+
+.library-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.library-item:hover {
+  border-color: #3a4150;
+}
+
+.library-item.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.library-item strong {
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.library-item small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.library-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.library-group-label {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
 }
 
 /* Transport */
@@ -604,10 +671,13 @@ input[type='range'] {
 .sheet {
   background: var(--paper);
   color: #111;
+  color-scheme: light;
   border-radius: var(--radius);
   min-height: 240px;
   max-height: 70vh;
-  overflow: auto;
+  /* The page layout always fits the width: horizontal overflow is only sub-pixel rounding */
+  overflow-x: hidden;
+  overflow-y: auto;
   position: relative;
 }
 

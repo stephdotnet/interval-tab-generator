@@ -6,6 +6,7 @@ import { parseTuning } from './instrument/tuning'
 import { navigate, type Step } from './navigation/navigate'
 import { layoutBars, notesPerBar, rhythmError, type Slot } from './rhythm/rhythm'
 import { DEFAULT_SETTINGS, effectiveWeights, type Settings } from './settings'
+import { findEntry } from './theory/library'
 import { buildTargets, type TargetSet } from './theory/targets'
 
 export interface Exercise {
@@ -21,8 +22,14 @@ export interface Exercise {
   problems: string[]
 }
 
+/** "Cm7b5 (1 b3 b5 b7)", "C dorien (1 2 b3 ...)" when the library knows the degrees, else "C : 1 - 2 - #4". */
 export function exerciseTitle(settings: Settings): string {
-  return settings.tonic + ' : ' + (settings.degrees.join(' - ') || '?')
+  const entry = findEntry(settings.degrees)
+  if (!entry) {
+    return settings.tonic + ' : ' + (settings.degrees.join(' - ') || '?')
+  }
+  const name = entry.symbol ?? ' ' + entry.name[0].toLowerCase() + entry.name.slice(1)
+  return settings.tonic + name + ' (' + entry.degrees.join(' ') + ')'
 }
 
 export function buildExercise(settings: Settings): Exercise {

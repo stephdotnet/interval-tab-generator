@@ -22,7 +22,7 @@ Avant de rendre la main : `npm test`, `npm run lint` et `npx tsc -b` doivent pas
 ## Architecture
 
 - `src/engine/` : moteur en TypeScript pur. **Jamais d'import React, DOM ou alphaTab ici** (seuls les tests importent alphaTab, pour parser l'alphaTex généré).
-  - `theory/` : hauteurs, degrés, orthographe des notes, `TargetSet` (pitch class -> degré).
+  - `theory/` : hauteurs, degrés, orthographe des notes, `TargetSet` (pitch class -> degré), `library.ts` (gammes et arpèges, recherche, nommage).
   - `instrument/` : presets, accordages, `Fretboard` (manche + plage de cases + cordes désactivées).
   - `fingering/` : un système = une `FingeringStrategy` (`box`, `caged`, `nps`) enregistrée dans `registry.ts`. `windowCollector.ts` est partagé par box et CAGED.
   - `navigation/` : modes `single` / `all` / `bestPath`. `bestPath.ts` = Viterbi, `cost.ts` = poids et presets.
@@ -40,7 +40,7 @@ Flux : `Settings` -> `buildExercise` -> `Exercise { positions, steps, bars, tex,
 - **Cordes** : en interne, corde 0 = la plus grave. En alphaTex, la corde 1 = la plus aiguë (`texString = nbCordes - idx`). Dans le modèle alphaTab parsé, `note.string` 1 = la plus grave.
 - `Position.notes` : une seule note par hauteur, triée par hauteur. C'est ce que jouent les modes `single` et `all`.
 - `Position.candidates` : tous les emplacements d'une hauteur dans la fenêtre. Utilisé uniquement par le best path.
-- `exercise.bars[bar][beat]` correspond exactement aux beats de l'alphaTex. Le surlignage du manche en dépend : ne pas regrouper les silences d'une mesure qui contient des notes.
+- Pour chaque note, `exercise.bars[bar][beat]` a le même index que le beat alphaTex correspondant. Le surlignage du manche en dépend. Seuls les silences **après la dernière note** d'une mesure sont regroupés (voir `fillWithRests`) : ne jamais regrouper des silences placés avant une note.
 - Réglages : un nouveau champ va dans `Settings` + `DEFAULT_SETTINGS` + `FIELDS` (url.ts) + le test d'aller-retour de `settings.test.ts`. L'URL ne contient que les valeurs différentes des défauts. Une valeur invalide dans l'URL est ignorée (le défaut reste).
 - Un problème bloquant (degré manquant, système indisponible, rythme impossible) va dans `exercise.problems`, jamais en exception.
 
@@ -49,6 +49,8 @@ Flux : `Settings` -> `buildExercise` -> `Exercise { positions, steps, bars, tex,
 - **un système de doigté** : implémenter `FingeringStrategy` (`unavailableReason` + `listPositions`), l'ajouter à `FINGERING_SYSTEMS` et à `registry.ts`, écrire ses tests dans `fingering.test.ts`, ajouter son libellé dans `FingeringPanel.tsx`.
 - **un motif** : fonction pure dans `patterns/`, branchée dans `patterns/index.ts`, options dans `PatternOptions` (+ défauts + URL).
 - **un poids de coût** : `CostWeights`, les 3 presets, `WEIGHT_KEYS` (url.ts, l'ordre compte), `WEIGHT_FIELDS` (FingeringPanel). Vérifier avec `npm run peek -- --compare` que les presets gardent leur caractère (voir DOMAIN.md).
+
+- **une gamme ou un arpège** : une ligne dans la bonne famille de `theory/library.ts` (id unique, degrés dans l'ordre de `DEGREES`, symbole si c'est un accord, autres noms pour la recherche). Les tests de `library.test.ts` vérifient la cohérence ; ajouter un cas d'orthographe si la formule contient des altérations inhabituelles.
 
 ## Conventions
 
@@ -66,6 +68,7 @@ Flux : `Settings` -> `buildExercise` -> `Exercise { positions, steps, bars, tex,
 - **Assets alphaTab** : le plugin Vite copie `font/` et `soundfont/` dans `public/` en parallèle de la copie `public/ -> dist/`. Sur un checkout vierge, la soundfont manquait au build. D'où `scripts/copy-alphatab-assets.ts` avant `dev` et `build`. `public/font` et `public/soundfont` sont ignorés par git.
 - **Tours de boucle** : compter avec `api.playerFinished` (émis à chaque fin de boucle quand `isLooping`). Détecter un retour du tick comptait aussi le Stop.
 - **Portée** : alphaTab écrit déjà la guitare une octave au-dessus du son réel. Ne pas ajouter de `\displaytranspose`.
+- **Débordement horizontal de la tab** : la mise en page Page tient toujours dans la largeur, un débordement n'est qu'un arrondi (zoom d'affichage Windows). `.sheet` masque donc `overflow-x`. `justifyLastSystem` étire la dernière ligne pour ne pas tasser un exercice d'une seule mesure.
 - **StrictMode** : l'API alphaTab est créée puis détruite deux fois en dev ; `destroy()` dans le cleanup de l'effet suffit.
 - **Base path** : `vite.config.ts` lit `BASE_PATH` (GitHub Pages sert sous `/<repo>/`). Toute URL d'asset doit passer par `import.meta.env.BASE_URL`.
 
