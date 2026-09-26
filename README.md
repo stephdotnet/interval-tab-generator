@@ -8,10 +8,22 @@ Générateur de tabs pour travailler des intervalles et des arpèges : on choisi
 npm install
 npm run dev     # http://localhost:5173
 npm test        # tests du moteur (Vitest)
+npm run lint
 npm run build
+npm run peek -- "deg=1,3,5&nav=bestPath"   # ce que génère le moteur, en texte
 ```
 
-Le plugin Vite d'alphaTab copie la police et la soundfont dans `public/font` et `public/soundfont` au démarrage (fichiers ignorés par git).
+La police et la soundfont d'alphaTab sont copiées dans `public/font` et `public/soundfont` avant `dev` et `build` (fichiers ignorés par git).
+
+## Déploiement
+
+GitHub Pages via `.github/workflows/deploy.yml`, à chaque push sur `main` (lint, tests, build sous `/<repo>/`). À activer une fois : Settings > Pages > Source = « GitHub Actions ».
+
+## Documentation
+
+- `CLAUDE.md` : consignes pour les agents (commandes, invariants, conventions, pièges, vérification).
+- `docs/DOMAIN.md` : règles musicales du moteur et raisons des choix.
+- `docs/ROADMAP.md` : fait, prévu, idées.
 
 ## Architecture
 
