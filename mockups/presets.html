@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Presets : 3 propositions</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --surface: #171a21;
+    --surface-2: #1f232c;
+    --border: #2a2f3a;
+    --text: #e8eaef;
+    --muted: #9097a6;
+    --accent: #ff5a5f;
+    --accent-soft: rgba(255, 90, 95, 0.14);
+    --focus: #4cc9f0;
+    --focus-soft: rgba(76, 201, 240, 0.12);
+    --radius: 10px;
+    --paper: #fbfaf7;
+    color-scheme: dark;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--text);
+    background: var(--bg);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); }
+  button, input, select { font: inherit; color: inherit; }
+
+  /* Page de présentation */
+  .intro { max-width: 1280px; margin: 0 auto; padding: 24px 16px 8px; }
+  .intro h1 { margin: 0 0 6px; font-size: 22px; }
+  .intro p { margin: 0; color: var(--muted); max-width: 820px; }
+  .tabs { display: flex; gap: 6px; margin: 18px 0 0; flex-wrap: wrap; }
+  .tabs button { border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 8px 16px; cursor: pointer; }
+  .tabs button.active { border-color: var(--accent); background: var(--accent-soft); }
+  .proposal { display: none; max-width: 1280px; margin: 0 auto; padding: 12px 16px 40px; }
+  .proposal.active { display: block; }
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .note { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+  .note h3 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .note ul { margin: 0; padding-left: 18px; }
+  .note li { margin: 2px 0; }
+  .note.pro h3 { color: #6ee7a0; }
+  .note.con h3 { color: #ff9f43; }
+  .shared { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin: 16px 0 0; }
+  .shared h2 { margin: 0 0 8px; font-size: 16px; }
+  .shared ul { margin: 0; padding-left: 18px; color: var(--muted); }
+  .shared li { margin: 3px 0; }
+  .shared code { color: var(--text); }
+
+  /* Cadre qui reproduit l'app */
+  .frame { position: relative; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--bg); }
+  .frame-label { position: absolute; bottom: 10px; left: 12px; z-index: 30; font-size: 11px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; }
+  .app { padding: 16px; }
+  .header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px; }
+  .header-text { flex: 1; min-width: 0; }
+  .header h1 { margin: 0; font-size: 20px; font-weight: 700; }
+  .header h1 span { margin-left: 8px; color: var(--accent); font-weight: 600; }
+  .header p { margin: 4px 0 0; color: var(--muted); }
+  .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; align-items: start; }
+  .sidebar { display: flex; flex-direction: column; gap: 10px; }
+  .main { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+  .panel-head { display: flex; align-items: baseline; gap: 8px; padding: 12px 14px; }
+  .panel-head::before { content: '▸'; color: var(--muted); }
+  .panel.open .panel-head::before { content: '▾'; }
+  .panel-title { font-weight: 650; }
+  .panel-summary { margin-left: auto; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .panel-body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .field-label { color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .transport { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+  .play { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; }
+  .play::after { content: ''; border-left: 13px solid #fff; border-top: 8px solid transparent; border-bottom: 8px solid transparent; margin-left: 3px; }
+  .stop { width: 34px; height: 34px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); }
+  .fake-range { width: 150px; height: 4px; background: linear-gradient(90deg, var(--accent) 35%, #444a57 35%); border-radius: 4px; }
+  .muted { color: var(--muted); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+  .sheet { background: var(--paper); border-radius: var(--radius); height: 170px; padding: 16px; color: #111; }
+  .sheet .staff { height: 70px; margin-top: 30px; background: repeating-linear-gradient(#999 0 1px, transparent 1px 14px); opacity: .6; }
+  .skeleton { height: 10px; border-radius: 6px; background: var(--surface-2); }
+
+  /* Contrôles communs */
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface-2); border-radius: 8px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
+  .btn:hover { border-color: #3a4150; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .btn.ghost { background: transparent; border-color: transparent; color: var(--muted); padding: 4px 6px; }
+  .btn.ghost:hover { color: var(--text); background: var(--surface-2); }
+  .input { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; min-width: 0; width: 100%; }
+  .icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .badge { font-size: 11px; border-radius: 999px; padding: 1px 8px; background: rgba(255, 159, 67, 0.15); color: #ff9f43; white-space: nowrap; }
+  .preset-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; }
+  .preset-row:hover { background: var(--surface-2); }
+  .preset-row.current { border-color: var(--focus); background: var(--focus-soft); }
+  .preset-row .meta { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .preset-row strong { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .preset-row small { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .preset-row .actions { display: flex; gap: 2px; opacity: 0; }
+  .preset-row:hover .actions, .preset-row.current .actions { opacity: 1; }
+  .divider { height: 1px; background: var(--border); margin: 6px 0; }
+  .footer-actions { display: flex; gap: 6px; justify-content: space-between; align-items: center; }
+  .footer-actions > span { display: flex; gap: 2px; flex: none; }
+
+  /* Proposition A : menu dans l'en-tête */
+  .preset-bar { display: flex; align-items: center; gap: 8px; flex: none; position: relative; }
+  .preset-select { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 7px 12px; min-width: 260px; cursor: pointer; }
+  .preset-select .name { font-weight: 600; flex: 1; text-align: left; }
+  .menu { position: absolute; top: calc(100% + 6px); right: 0; width: 380px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 16px 40px rgba(0, 0, 0, .5); padding: 8px; z-index: 20; }
+  .menu .search { margin-bottom: 6px; }
+  .popover-save { position: absolute; top: calc(100% + 6px); right: 0; width: 320px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 16px 40px rgba(0, 0, 0, .5); padding: 12px; z-index: 21; display: flex; flex-direction: column; gap: 8px; }
+  .callout { outline: 2px dashed rgba(76, 201, 240, .7); outline-offset: 4px; border-radius: 12px; }
+
+  /* Proposition B : panneau de la sidebar */
+  .save-row { display: flex; gap: 6px; }
+  .preset-list { display: flex; flex-direction: column; gap: 2px; max-height: 250px; overflow: auto; }
+
+  /* Proposition C : tiroir */
+  .backdrop { position: absolute; inset: 0; background: rgba(6, 8, 12, .55); z-index: 10; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .drawer { position: absolute; top: 0; right: 0; bottom: 0; width: 420px; background: var(--surface); border-left: 1px solid var(--border); z-index: 11; display: flex; flex-direction: column; box-shadow: -20px 0 50px rgba(0, 0, 0, .4); transform: translateX(105%); transition: transform .25s ease; visibility: hidden; }
+  .frame.drawer-open .backdrop { opacity: 1; pointer-events: auto; }
+  .frame.drawer-open .drawer { transform: none; visibility: visible; }
+  .header-button { font-weight: 600; }
+  .header-button kbd { font: inherit; font-size: 11px; color: var(--muted); border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; }
+  .hint-arrow { position: absolute; top: 64px; right: 24px; z-index: 5; color: var(--focus); font-size: 12px; display: flex; align-items: center; gap: 6px; animation: nudge 1.2s ease-in-out infinite; }
+  .frame.drawer-open .hint-arrow { display: none; }
+  @keyframes nudge { 50% { transform: translateY(-4px); } }
+  @media (prefers-reduced-motion: reduce) { .drawer, .backdrop { transition: none; } .hint-arrow { animation: none; } }
+  .drawer-head { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--border); }
+  .drawer-head h2 { margin: 0; font-size: 16px; flex: 1; }
+  .drawer-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; overflow: auto; flex: 1; }
+  .save-card { border: 1px dashed #3a4150; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pcard { border: 1px solid var(--border); background: var(--surface-2); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; }
+  .pcard.current { border-color: var(--focus); background: var(--focus-soft); }
+  .pcard strong { font-weight: 600; }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag { font-size: 11px; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 0 7px; }
+  .mini-neck { height: 28px; border-radius: 4px; background: repeating-linear-gradient(90deg, transparent 0 17px, #3a4150 17px 18px), repeating-linear-gradient(#555b68 0 1px, transparent 1px 5.4px); position: relative; }
+  .mini-neck i { position: absolute; width: 6px; height: 6px; border-radius: 50%; }
+  .drawer-foot { padding: 12px 16px; border-top: 1px solid var(--border); }
+  .header-button { position: relative; }
+  .count { font-size: 11px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 0 7px; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .header { flex-direction: column; }
+    .menu, .popover-save { width: min(380px, calc(100vw - 64px)); }
+    .drawer { width: min(420px, 100%); }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+</svg>
+
+<div class="intro">
+  <h1>Presets d'exercices : 3 propositions</h1>
+  <p>Même app, même grille (sidebar + contenu). Seul l'emplacement du système de presets change. Les zones en pointillés bleus sont les ajouts. Les listes et menus sont montrés ouverts pour la lisibilité.</p>
+  <div class="tabs" role="tablist">
+    <button class="active" data-tab="a" role="tab">A · Menu dans l'en-tête</button>
+    <button data-tab="b" role="tab">B · Panneau « Mes exercices »</button>
+    <button data-tab="c" role="tab">C · Tiroir latéral</button>
+  </div>
+</div>
+
+<!-- ============ A ============ -->
+<section class="proposal active" id="tab-a">
+  <div class="notes">
+    <div class="note"><h3>Principe</h3>Un sélecteur à droite du titre, toujours visible : il affiche l'exercice chargé, ouvre la liste, et un bouton « Enregistrer » à côté.</div>
+    <div class="note pro"><h3>Pour</h3><ul><li>Aucune place prise dans la grille : l'en-tête a de l'espace à droite</li><li>Accessible même quand la sidebar est scrollée</li><li>Le nom de l'exercice chargé et l'état « modifié » restent sous les yeux</li></ul></div>
+    <div class="note con"><h3>Contre</h3><ul><li>Liste dans un menu : moins confortable au-delà de ~30 presets (d'où la recherche)</li><li>Sur mobile, le menu passe sous le titre</li></ul></div>
+  </div>
+  <div class="frame">
+    <span class="frame-label">Menu ouvert</span>
+    <div class="app">
+      <div class="header">
+        <div class="header-text">
+          <h1>Tab d'intervalles <span>C dorien (1 2 b3 4 5 6 b7)</span></h1>
+          <p>Choisis une tonalité et des degrés : la tab se génère, se joue et se met en boucle.</p>
+        </div>
+        <div class="preset-bar callout">
+          <button class="preset-select">
+            <svg class="icon"><use href="#i-folder"/></svg>
+            <span class="name">Dorien diagonale</span>
+            <span class="badge">modifié</span>
+            <svg class="icon"><use href="#i-chevron"/></svg>
+          </button>
+          <button class="btn" title="Mettre à jour « Dorien diagonale »"><svg class="icon"><use href="#i-refresh"/></svg></button>
+          <button class="btn primary"><svg class="icon"><use href="#i-save"/></svg>Enregistrer</button>
+          <div class="menu">
+            <input class="input search" placeholder="Rechercher un exercice..." />
+            <div class="preset-row current"><div class="meta"><strong>Dorien diagonale</strong><small>C dorien · Box · Best path diagonale · 80 BPM</small></div><div class="actions"><button class="btn ghost"><svg class="icon"><use href="#i-edit"/></svg></button><button class="btn ghost"><svg class="icon"><use href="#i-copy"/></svg></button><button class="btn ghost"><svg class="icon"><use href="#i-trash"/></svg></button></div></div>
+            <div class="preset-row"><div class="meta"><strong>Arpèges m7b5 CAGED</strong><small>Bm7b5 · CAGED · Toutes · Séquences 0 1 2</small></div><div class="actions"><button class="btn ghost"><svg class="icon"><use href="#i-edit"/></svg></button><button class="btn ghost"><svg class="icon"><use href="#i-copy"/></svg></button><button class="btn ghost"><svg class="icon"><use href="#i-trash"/></svg></button></div></div>
+            <div class="preset-row"><div class="meta"><strong>Tierces en triolets</strong><small>G majeure · 3nps · Paires · 16t · 60 → 100 BPM</small></div><div class="actions"><button class="btn ghost"><svg class="icon"><use href="#i-edit"/></svg></button><button class="btn ghost"><svg class="icon"><use href="#i-copy"/></svg></button><button class="btn ghost"><svg class="icon"><use href="#i-trash"/></svg></button></div></div>
+            <div class="preset-row"><div class="meta"><strong>Basse : penta mineure</strong><small>E penta mineure · Basse 4 · Box · Aléatoire</small></div><div class="actions"><button class="btn ghost"><svg class="icon"><use href="#i-edit"/></svg></button><button class="btn ghost"><svg class="icon"><use href="#i-copy"/></svg></button><button class="btn ghost"><svg class="icon"><use href="#i-trash"/></svg></button></div></div>
+            <div class="divider"></div>
+            <div class="footer-actions"><span class="muted" style="font-size:12px">4 exercices · stockés dans ce navigateur</span><span><button class="btn ghost"><svg class="icon"><use href="#i-down"/></svg>Exporter</button><button class="btn ghost"><svg class="icon"><use href="#i-up"/></svg>Importer</button></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="layout">
+        <div class="sidebar">
+          <div class="panel open"><div class="panel-head"><span class="panel-title">Tonalité et intervalles</span><span class="panel-summary">C Dorien</span></div><div class="panel-body"><div class="skeleton" style="width:90%"></div><div class="skeleton" style="width:70%"></div><div class="skeleton" style="width:80%"></div></div></div>
+          <div class="panel"><div class="panel-head"><span class="panel-title">Doigté</span><span class="panel-summary">Box · Best path</span></div></div>
+          <div class="panel"><div class="panel-head"><span class="panel-title">Motif</span><span class="panel-summary">Montée / descente</span></div></div>
+          <div class="panel"><div class="panel-head"><span class="panel-title">Rythme et affichage</span><span class="panel-summary">Croches · 4/4</span></div></div>
+          <div class="panel"><div class="panel-head"><span class="panel-title">Instrument</span><span class="panel-summary">Guitare 6 cordes</span></div></div>
+        </div>
+        <div class="main">
+          <div class="transport"><span class="play"></span><span class="stop"></span><span>Tempo</span><span class="fake-range"></span><span class="muted">80 BPM</span></div>
+          <div class="card" style="height:150px"><div class="skeleton" style="height:100px"></div></div>
+          <div class="sheet"><strong>C dorien</strong><div class="staff"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="frame" style="margin-top:14px">
+    <span class="frame-label">Clic sur « Enregistrer »</span>
+    <div class="app" style="min-height:230px">
+      <div class="header">
+        <div class="header-text"><h1>Tab d'intervalles <span>C dorien (1 2 b3 4 5 6 b7)</span></h1><p>Le nom est pré-rempli à partir des réglages, modifiable.</p></div>
+        <div class="preset-bar callout">
+          <button class="preset-select"><svg class="icon"><use href="#i-folder"/></svg><span class="name muted">Aucun exercice chargé</span><svg class="icon"><use href="#i-chevron"/></svg></button>
+          <button class="btn primary"><svg class="icon"><use href="#i-save"/></svg>Enregistrer</button>
+          <div class="popover-save">
+            <span class="field-label">Nom de l'exercice</span>
+            <input class="input" value="C dorien · Box · Best path" />
+            <div class="footer-actions"><span class="muted" style="font-size:12px">Entrée pour valider</span><span style="display:flex;gap:6px"><button class="btn">Annuler</button><button class="btn primary">Enregistrer</button></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ B ============ -->
+<section class="proposal" id="tab-b">
+  <div class="notes">
+    <div class="note"><h3>Principe</h3>Un nouveau panneau repliable en tête de sidebar, au même format que les autres : champ nom + bouton, puis la liste.</div>
+    <div class="note pro"><h3>Pour</h3><ul><li>Cohérent avec l'UI existante (mêmes panneaux)</li><li>Liste toujours visible quand le panneau est ouvert, confortable pour beaucoup de presets</li><li>Replié, le résumé montre l'exercice chargé</li></ul></div>
+    <div class="note con"><h3>Contre</h3><ul><li>Rallonge une sidebar déjà longue : il faut replier pour retrouver les réglages</li><li>Invisible quand on a scrollé la sidebar</li></ul></div>
+  </div>
+  <div class="frame">
+    <span class="frame-label">Panneau ouvert</span>
+    <div class="app">
+      <div class="header"><div class="header-text"><h1>Tab d'intervalles <span>C dorien (1 2 b3 4 5 6 b7)</span></h1><p>Choisis une tonalité et des degrés : la tab se génère, se joue et se met en boucle.</p></div></div>
+      <div class="layout">
+        <div class="sidebar">
+          <div class="panel open callout">
+            <div class="panel-head"><span class="panel-title">Mes exercices</span><span class="panel-summary">4 · Dorien diagonale</span></div>
+            <div class="panel-body">
+              <div class="save-row"><input class="input" value="C dorien · Box · Best path" /><button class="btn primary" title="Enregistrer"><svg class="icon"><use href="#i-save"/></svg></button></div>
+              <div class="preset-list">
+                <div class="preset-row current"><div class="meta"><strong>Dorien diagonale</strong><small>C dorien · Box · Best path</small></div><span class="badge">modifié</span><div class="actions"><button class="btn ghost" title="Mettre à jour"><svg class="icon"><use href="#i-refresh"/></svg></button><button class="btn ghost"><svg class="icon"><use href="#i-edit"/></svg></button><button class="btn ghost"><svg class="icon"><use href="#i-trash"/></svg></button></div></div>
+                <div class="preset-row"><div class="meta"><strong>Arpèges m7b5 CAGED</strong><small>Bm7b5 · CAGED · Toutes</small></div><div class="actions"><button class="btn ghost"><svg class="icon"><use href="#i-edit"/></svg></button><button class="btn ghost"><svg class="icon"><use href="#i-trash"/></svg></button></div></div>
+                <div class="preset-row"><div class="meta"><strong>Tierces en triolets</strong><small>G majeure · 3nps · Paires · 16t</small></div><div class="actions"><button class="btn ghost"><svg class="icon"><use href="#i-edit"/></svg></button><button class="btn ghost"><svg class="icon"><use href="#i-trash"/></svg></button></div></div>
+                <div class="preset-row"><div class="meta"><strong>Basse : penta mineure</strong><small>E penta mineure · Basse 4 · Box</small></div><div class="actions"><button class="btn ghost"><svg class="icon"><use href="#i-edit"/></svg></button><button class="btn ghost"><svg class="icon"><use href="#i-trash"/></svg></button></div></div>
+              </div>
+              <div class="footer-actions"><button class="btn ghost"><svg class="icon"><use href="#i-down"/></svg>Exporter</button><button class="btn ghost"><svg class="icon"><use href="#i-up"/></svg>Importer</button></div>
+            </div>
+          </div>
+          <div class="panel"><div class="panel-head"><span class="panel-title">Tonalité et intervalles</span><span class="panel-summary">C Dorien</span></div></div>
+          <div class="panel"><div class="panel-head"><span class="panel-title">Doigté</span><span class="panel-summary">Box · Best path</span></div></div>
+          <div class="panel"><div class="panel-head"><span class="panel-title">Motif</span><span class="panel-summary">Montée / descente</span></div></div>
+          <div class="panel"><div class="panel-head"><span class="panel-title">Rythme et affichage</span><span class="panel-summary">Croches · 4/4</span></div></div>
+          <div class="panel"><div class="panel-head"><span class="panel-title">Instrument</span><span class="panel-summary">Guitare 6 cordes</span></div></div>
+        </div>
+        <div class="main">
+          <div class="transport"><span class="play"></span><span class="stop"></span><span>Tempo</span><span class="fake-range"></span><span class="muted">80 BPM</span></div>
+          <div class="card" style="height:150px"><div class="skeleton" style="height:100px"></div></div>
+          <div class="sheet"><strong>C dorien</strong><div class="staff"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ C ============ -->
+<section class="proposal" id="tab-c">
+  <div class="notes">
+    <div class="note"><h3>Principe</h3>Un bouton « Mes exercices » à droite de l'en-tête (ou la touche E) ouvre un tiroir par-dessus le contenu : enregistrement en haut, cartes détaillées en dessous. Fermeture : croix, clic sur le fond, Échap, ou clic sur un exercice (qui le charge).</div>
+    <div class="note pro"><h3>Pour</h3><ul><li>Zéro impact sur la grille, beaucoup de place pour une vraie bibliothèque (cartes, mini-manche, tags, tri)</li><li>Idéal si les presets deviennent nombreux ou si on ajoute des exercices fournis</li></ul></div>
+    <div class="note con"><h3>Contre</h3><ul><li>Masque l'app pendant qu'il est ouvert : pas de comparaison immédiate</li><li>Un clic de plus pour charger un exercice</li><li>Plus de code (focus trap, Échap, animation)</li></ul></div>
+  </div>
+  <div class="frame" id="frame-c" style="min-height:640px">
+    <span class="frame-label">Interactif : clique sur « Mes exercices » ou appuie sur E</span>
+    <span class="hint-arrow">▲ clique ici</span>
+    <div class="app">
+      <div class="header">
+        <div class="header-text"><h1>Tab d'intervalles <span>C dorien (1 2 b3 4 5 6 b7)</span></h1><p>Choisis une tonalité et des degrés : la tab se génère, se joue et se met en boucle.</p></div>
+        <button class="btn header-button callout" id="open-drawer" aria-haspopup="dialog" aria-controls="drawer"><svg class="icon"><use href="#i-folder"/></svg>Mes exercices <span class="count">4</span> <kbd>E</kbd></button>
+      </div>
+      <div class="layout">
+        <div class="sidebar">
+          <div class="panel open"><div class="panel-head"><span class="panel-title">Tonalité et intervalles</span><span class="panel-summary">C Dorien</span></div><div class="panel-body"><div class="skeleton" style="width:90%"></div><div class="skeleton" style="width:70%"></div></div></div>
+          <div class="panel"><div class="panel-head"><span class="panel-title">Doigté</span><span class="panel-summary">Box · Best path</span></div></div>
+          <div class="panel"><div class="panel-head"><span class="panel-title">Motif</span><span class="panel-summary">Montée / descente</span></div></div>
+        </div>
+        <div class="main">
+          <div class="transport"><span class="play"></span><span class="stop"></span><span>Tempo</span><span class="fake-range"></span></div>
+          <div class="card" style="height:150px"></div>
+          <div class="sheet"><strong>C dorien</strong><div class="staff"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="backdrop" id="backdrop"></div>
+    <aside class="drawer callout" id="drawer" role="dialog" aria-label="Mes exercices" style="outline-offset:-4px">
+      <div class="drawer-head"><h2>Mes exercices</h2><button class="btn ghost" id="close-drawer" aria-label="Fermer"><svg class="icon"><use href="#i-x"/></svg></button></div>
+      <div class="drawer-body">
+        <div class="save-card">
+          <span class="field-label">Enregistrer l'exercice actuel</span>
+          <div class="save-row"><input class="input" value="C dorien · Box · Best path" /><button class="btn primary"><svg class="icon"><use href="#i-save"/></svg>Enregistrer</button></div>
+        </div>
+        <div class="save-row"><input class="input" placeholder="Rechercher..." /><select class="input" style="width:130px;flex:none"><option>Récents</option><option>Nom</option><option>Tonalité</option></select></div>
+        <div class="cards">
+          <div class="pcard current"><strong>Dorien diagonale</strong><div class="mini-neck"><i style="left:20%;top:4px;background:#ff5a5f"></i><i style="left:35%;top:10px;background:#f6d743"></i><i style="left:50%;top:16px;background:#4cc9f0"></i><i style="left:65%;top:4px;background:#ff5a5f"></i></div><div class="tags"><span class="tag">C dorien</span><span class="tag">Box</span><span class="tag">Best path</span></div><span class="badge" style="align-self:flex-start">modifié · mettre à jour</span></div>
+          <div class="pcard"><strong>Arpèges m7b5 CAGED</strong><div class="mini-neck"><i style="left:30%;top:10px;background:#ff5a5f"></i><i style="left:45%;top:4px;background:#2ec4b6"></i><i style="left:60%;top:16px;background:#f78fd2"></i></div><div class="tags"><span class="tag">Bm7b5</span><span class="tag">CAGED</span><span class="tag">Toutes</span></div></div>
+          <div class="pcard"><strong>Tierces en triolets</strong><div class="mini-neck"><i style="left:15%;top:16px;background:#ff5a5f"></i><i style="left:28%;top:10px;background:#f6d743"></i></div><div class="tags"><span class="tag">G majeure</span><span class="tag">3nps</span><span class="tag">16t</span></div></div>
+          <div class="pcard"><strong>Basse : penta mineure</strong><div class="mini-neck"><i style="left:40%;top:10px;background:#ff5a5f"></i><i style="left:55%;top:16px;background:#f6d743"></i></div><div class="tags"><span class="tag">E penta m</span><span class="tag">Basse 4</span></div></div>
+        </div>
+      </div>
+      <div class="drawer-foot footer-actions"><span class="muted" style="font-size:12px">Stockés dans ce navigateur</span><span><button class="btn ghost"><svg class="icon"><use href="#i-down"/></svg>Exporter</button><button class="btn ghost"><svg class="icon"><use href="#i-up"/></svg>Importer</button></span></div>
+    </aside>
+  </div>
+</section>
+
+<div class="intro" style="padding-bottom:40px">
+  <div class="shared">
+    <h2>Commun aux 3 propositions (moteur identique)</h2>
+    <ul>
+      <li>Un preset = <code>{ id, nom, query, créé, modifié }</code> où <code>query</code> est la query string de l'URL : on réutilise le codec existant, donc un preset ancien reste lisible (valeurs invalides ignorées, défauts complétés).</li>
+      <li>Stockage <code>localStorage</code> sous une clé versionnée, lectures et écritures protégées (navigation privée, stockage plein ou bloqué) : l'app marche sans.</li>
+      <li>Exercice chargé suivi : badge « modifié » dès qu'un réglage change, bouton « Mettre à jour » ou « Enregistrer sous ».</li>
+      <li>Nom pré-rempli depuis les réglages (« C dorien · Box · Best path »), renommer, dupliquer, supprimer avec annulation.</li>
+      <li>Export / import JSON pour sauvegarder ou passer d'un navigateur à l'autre.</li>
+      <li>Synchronisation entre onglets (événement <code>storage</code>).</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  const frameC = document.getElementById('frame-c')
+  const setDrawer = (open) => {
+    frameC.classList.toggle('drawer-open', open)
+    if (open) document.querySelector('#drawer input').focus()
+    else document.getElementById('open-drawer').focus()
+  }
+  document.getElementById('open-drawer').addEventListener('click', () => setDrawer(true))
+  document.getElementById('close-drawer').addEventListener('click', () => setDrawer(false))
+  document.getElementById('backdrop').addEventListener('click', () => setDrawer(false))
+  document.querySelectorAll('#drawer .pcard').forEach((card) =>
+    card.addEventListener('click', () => {
+      document.querySelectorAll('#drawer .pcard').forEach((c) => c.classList.toggle('current', c === card))
+      setDrawer(false)
+    }),
+  )
+  document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('tab-c').classList.contains('active')) return
+    if (e.key === 'Escape') setDrawer(false)
+    if (e.key.toLowerCase() === 'e' && !(e.target instanceof HTMLInputElement)) setDrawer(!frameC.classList.contains('drawer-open'))
+  })
+  document.querySelectorAll('.tabs button').forEach((button) => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('active', b === button))
+      document.querySelectorAll('.proposal').forEach((p) => p.classList.toggle('active', p.id === 'tab-' + button.dataset.tab))
+    })
+  })
+</script>
+</body>
+</html>

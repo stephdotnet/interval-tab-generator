@@ -11,10 +11,10 @@
 - Lecture alphaTab : curseur, boucle, métronome, décompte, accélération progressive, 9 sons.
 - Manche SVG synchronisé, portée optionnelle, réglages partagés via l'URL.
 - Déploiement GitHub Pages.
+- « Mes exercices » : presets dans le localStorage (tiroir latéral, touche E), nom pré-rempli, badge « modifié » et mise à jour, renommer, dupliquer, supprimer avec annulation, recherche et tri, export / import JSON, synchronisation entre onglets.
 
 ## Prévu, pas encore fait
 
-- **Presets d'exercices** sauvegardés dans le navigateur (liste de favoris).
 - **Exports** : Guitar Pro / MusicXML (alphaTab sait exporter), PDF / impression (`api.print()`).
 
 ## Idées (à valider avec l'utilisateur avant de coder)

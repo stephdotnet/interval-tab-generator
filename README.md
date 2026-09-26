@@ -35,6 +35,7 @@ GitHub Pages via `.github/workflows/deploy.yml`, à chaque push sur `main` (lint
   - `patterns` : montée / descente, séquences (motifs d'offsets), aléatoire à graine, paires d'intervalles.
   - `rhythm`, `export/alphatex` : découpage en mesures et génération de l'alphaTex.
   - `settings`, `url` : réglages et leur sérialisation dans l'URL (seules les valeurs différentes des défauts).
+  - `presets` : exercices sauvegardés (« Mes exercices », stockés dans le navigateur).
 - `src/player` : hook alphaTab (lecture, boucle, métronome, décompte, accélération progressive).
 - `src/ui` : panneaux de réglages, manche SVG, liste des positions, tab.
 

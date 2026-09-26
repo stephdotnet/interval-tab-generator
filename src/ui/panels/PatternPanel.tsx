@@ -1,15 +1,9 @@
+import { PATTERN_LABELS } from '../../engine/labels'
 import { MOTIF_PRESETS } from '../../engine/patterns/sequences'
 import type { Direction, PairOrder, PairPlacement, PatternType } from '../../engine/patterns/types'
 import type { Settings } from '../../engine/settings'
 import { Field, NumberInput, Panel, Segmented, Select, Toggle } from '../controls'
 import type { UpdateSettings } from '../state/useSettings'
-
-const TYPE_LABELS: Record<PatternType, string> = {
-  ascDesc: 'Montée / descente',
-  sequence: 'Séquences',
-  random: 'Aléatoire',
-  pairs: 'Paires',
-}
 
 const DIRECTION_LABELS: Record<Direction, string> = {
   up: 'Montée',
@@ -32,11 +26,11 @@ export function PatternPanel({ settings, update }: { settings: Settings; update:
   )
 
   return (
-    <Panel title="Motif" summary={TYPE_LABELS[pattern.type]} open>
+    <Panel title="Motif" summary={PATTERN_LABELS[pattern.type]} open>
       <Field label="Type">
         <Segmented
           value={pattern.type}
-          choices={(Object.keys(TYPE_LABELS) as PatternType[]).map((t) => ({ value: t, label: TYPE_LABELS[t] }))}
+          choices={(Object.keys(PATTERN_LABELS) as PatternType[]).map((t) => ({ value: t, label: PATTERN_LABELS[t] }))}
           onChange={(v) => update((s) => (s.pattern.type = v))}
         />
       </Field>

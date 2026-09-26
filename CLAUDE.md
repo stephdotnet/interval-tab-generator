@@ -29,9 +29,11 @@ Avant de rendre la main : `npm test`, `npm run lint` et `npx tsc -b` doivent pas
   - `patterns/` : ordre des notes (montée/descente, séquences, aléatoire, paires).
   - `rhythm/`, `export/alphatex.ts` : mesures puis alphaTex.
   - `settings.ts` (types + défauts + `sanitizeSettings`), `url.ts` (sérialisation), `exercise.ts` (orchestration : `buildExercise(settings)`).
+  - `presets.ts` : exercices sauvegardés (données pures : création, lecture tolérante, fusion à l'import, nom par défaut, tags, tri, filtre).
+  - `labels.ts` : libellés partagés (systèmes, modes d'enchaînement, motifs).
   - `debug/describe.ts` : sorties texte utilisées par `npm run peek`.
 - `src/player/useAlphaTab.ts` : cycle de vie de l'API alphaTab, lecture, boucle, accélération.
-- `src/ui/` : panneaux, manche SVG, liste des positions. `state/useSettings.ts` garde les réglages dans l'URL.
+- `src/ui/` : panneaux, manche SVG, liste des positions. `state/useSettings.ts` garde les réglages dans l'URL. `state/usePresets.ts` + `PresetDrawer.tsx` : « Mes exercices » (tiroir ouvert par le bouton de l'en-tête ou la touche E).
 
 Flux : `Settings` -> `buildExercise` -> `Exercise { positions, steps, bars, tex, problems }` -> UI + alphaTab. L'UI ne recalcule rien, elle lit l'`Exercise`.
 
@@ -43,6 +45,7 @@ Flux : `Settings` -> `buildExercise` -> `Exercise { positions, steps, bars, tex,
 - Pour chaque note, `exercise.bars[bar][beat]` a le même index que le beat alphaTex correspondant. Le surlignage du manche en dépend. Seuls les silences **après la dernière note** d'une mesure sont regroupés (voir `fillWithRests`) : ne jamais regrouper des silences placés avant une note.
 - Réglages : un nouveau champ va dans `Settings` + `DEFAULT_SETTINGS` + `FIELDS` (url.ts) + le test d'aller-retour de `settings.test.ts`. L'URL ne contient que les valeurs différentes des défauts. Une valeur invalide dans l'URL est ignorée (le défaut reste).
 - Un problème bloquant (degré manquant, système indisponible, rythme impossible) va dans `exercise.problems`, jamais en exception.
+- **Presets** : un preset stocke la query string de l'URL, jamais l'objet `Settings`. Le codec URL rend ainsi les vieux presets lisibles : ne pas changer la clé d'un champ de `FIELDS` sans migration. Stockage : `localStorage['interval-tab:presets']` = `{ version, presets }` ; preset chargé dans l'onglet : `sessionStorage['interval-tab:current-preset']`. Tout accès au stockage passe par les fonctions protégées de `usePresets.ts` (navigation privée, stockage bloqué).
 
 ## Ajouter...
 
@@ -69,6 +72,7 @@ Flux : `Settings` -> `buildExercise` -> `Exercise { positions, steps, bars, tex,
 - **Tours de boucle** : compter avec `api.playerFinished` (émis à chaque fin de boucle quand `isLooping`). Détecter un retour du tick comptait aussi le Stop.
 - **Portée** : alphaTab écrit déjà la guitare une octave au-dessus du son réel. Ne pas ajouter de `\displaytranspose`.
 - **Débordement horizontal de la tab** : la mise en page Page tient toujours dans la largeur, un débordement n'est qu'un arrondi (zoom d'affichage Windows). `.sheet` masque donc `overflow-x`. `justifyLastSystem` étire la dernière ligne pour ne pas tasser un exercice d'une seule mesure.
+- **Superposition** : les curseurs alphaTab ont des z-index élevés. `.sheet` a `isolation: isolate` pour qu'ils restent sous le tiroir des presets (z-index 50).
 - **StrictMode** : l'API alphaTab est créée puis détruite deux fois en dev ; `destroy()` dans le cleanup de l'effet suffit.
 - **Base path** : `vite.config.ts` lit `BASE_PATH` (GitHub Pages sert sous `/<repo>/`). Toute URL d'asset doit passer par `import.meta.env.BASE_URL`.
 

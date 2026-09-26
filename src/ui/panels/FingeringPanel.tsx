@@ -1,23 +1,12 @@
 import type { Exercise } from '../../engine/exercise'
 import { STRATEGIES } from '../../engine/fingering/registry'
-import { CAGED_SHAPES, FINGERING_SYSTEMS, type FingeringSystem } from '../../engine/fingering/types'
+import { MODE_LABELS, SYSTEM_LABELS } from '../../engine/labels'
+import { CAGED_SHAPES, FINGERING_SYSTEMS } from '../../engine/fingering/types'
 import { COST_PRESET_IDS, COST_PRESETS, type CostWeights } from '../../engine/navigation/cost'
-import type { GapMode, NavigationMode } from '../../engine/navigation/navigate'
+import type { GapMode } from '../../engine/navigation/navigate'
 import { effectiveWeights, type Settings } from '../../engine/settings'
 import { Chip, Field, NumberInput, Panel, Segmented, Select, Toggle } from '../controls'
 import type { UpdateSettings } from '../state/useSettings'
-
-const SYSTEM_LABELS: Record<FingeringSystem, string> = {
-  box: 'Box',
-  caged: 'CAGED',
-  nps: 'N notes / corde',
-}
-
-const MODE_LABELS: Record<NavigationMode, string> = {
-  single: 'Une position',
-  all: 'Toutes',
-  bestPath: 'Best path',
-}
 
 const GAP_LABELS: Record<GapMode, string> = {
   none: 'Enchaîner sans pause',
