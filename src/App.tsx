@@ -1,0 +1,95 @@
+import { useCallback, useMemo, useRef, useState } from 'react'
+import { buildExercise } from './engine/exercise'
+import type { FretNote } from './engine/fingering/types'
+import { clampIndex } from './engine/navigation/navigate'
+import { useAlphaTab } from './player/useAlphaTab'
+import { Fretboard } from './ui/Fretboard'
+import { FingeringPanel } from './ui/panels/FingeringPanel'
+import { InstrumentPanel } from './ui/panels/InstrumentPanel'
+import { KeyPanel } from './ui/panels/KeyPanel'
+import { PatternPanel } from './ui/panels/PatternPanel'
+import { RhythmPanel } from './ui/panels/RhythmPanel'
+import { PositionList } from './ui/PositionList'
+import { useSettings } from './ui/state/useSettings'
+import { TabView } from './ui/TabView'
+import { Transport } from './ui/Transport'
+
+export default function App() {
+  const [settings, update] = useSettings()
+  const exercise = useMemo(() => buildExercise(settings), [settings])
+  const [playing, setPlaying] = useState<{ bar: number; beat: number } | null>(null)
+
+  const container = useRef<HTMLDivElement>(null)
+  const scroller = useRef<HTMLDivElement>(null)
+  const onBeat = useCallback((position: { bar: number; beat: number } | null) => setPlaying(position), [])
+  const { status, playPause, stop } = useAlphaTab(container, scroller, {
+    tex: exercise.tex,
+    baseTempo: settings.rhythm.tempo,
+    player: settings.player,
+    onBeat,
+  })
+
+  const { positions } = exercise
+  const selected =
+    settings.navigation.mode === 'single' && positions.length
+      ? positions[clampIndex(settings.navigation.positionIndex, positions.length)]
+      : null
+  const slot = playing ? (exercise.bars[playing.bar]?.[playing.beat] ?? null) : null
+  const used = useMemo(
+    () => exercise.steps.flatMap((s): FretNote[] => (s.kind === 'note' ? [s.note] : [])),
+    [exercise.steps],
+  )
+
+  return (
+    <div className="app">
+      <header className="header">
+        <h1>
+          Tab d'intervalles <span>{exercise.title}</span>
+        </h1>
+        <p>Choisis une tonalité et des degrés : la tab se génère, se joue et se met en boucle.</p>
+      </header>
+      <div className="layout">
+        <aside className="sidebar">
+          <KeyPanel settings={settings} update={update} />
+          <FingeringPanel settings={settings} update={update} exercise={exercise} />
+          <PatternPanel settings={settings} update={update} />
+          <RhythmPanel settings={settings} update={update} />
+          <InstrumentPanel settings={settings} update={update} />
+        </aside>
+        <main className="main">
+          <Transport settings={settings} update={update} status={status} onPlayPause={playPause} onStop={stop} />
+          {exercise.problems.length > 0 && (
+            <ul className="problems" role="alert">
+              {exercise.problems.map((p) => (
+                <li key={p}>{p}</li>
+              ))}
+            </ul>
+          )}
+          <section className="card">
+            <Fretboard
+              board={exercise.board}
+              targets={exercise.targets}
+              labels={settings.display.labels === 'none' ? 'degree' : settings.display.labels}
+              used={selected ? selected.notes : used}
+              position={slot?.position ?? selected}
+              active={slot?.note ?? null}
+            />
+            {positions.length > 0 && (
+              <PositionList
+                positions={positions}
+                selected={selected ?? slot?.position ?? null}
+                onSelect={(index) =>
+                  update((s) => {
+                    s.navigation.mode = 'single'
+                    s.navigation.positionIndex = index
+                  })
+                }
+              />
+            )}
+          </section>
+          <TabView container={container} scroller={scroller} />
+        </main>
+      </div>
+    </div>
+  )
+}
