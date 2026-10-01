@@ -1,10 +1,11 @@
+import { applyEnclosures, enclosurePlan, type EnclosurePlan } from './enclosures'
 import { toAlphaTex } from './export/alphatex'
 import { STRATEGIES } from './fingering/registry'
 import type { FingeringContext, Position } from './fingering/types'
 import type { Fretboard } from './instrument/fretboard'
 import { parseTuning } from './instrument/tuning'
 import { navigate, type Step } from './navigation/navigate'
-import { layoutBars, notesPerBar, rhythmError, type Slot } from './rhythm/rhythm'
+import { layoutBars, notesPerBar, rhythmError, type Slot, type Subdivision } from './rhythm/rhythm'
 import { DEFAULT_SETTINGS, effectiveWeights, type Settings } from './settings'
 import { findEntry } from './theory/library'
 import { buildTargets, type TargetSet } from './theory/targets'
@@ -18,6 +19,9 @@ export interface Exercise {
   bars: Slot[][]
   tex: string
   title: string
+  enclosure: EnclosurePlan
+  /** Subdivision actually used (the enclosure alignment may impose one). */
+  subdivision: Subdivision
   /** Why the exercise is empty or incomplete. */
   problems: string[]
 }
@@ -62,29 +66,30 @@ export function buildExercise(settings: Settings): Exercise {
     }
   }
 
-  const steps = navigate(
-    positions,
-    { ...settings.navigation, weights: effectiveWeights(settings.navigation) },
-    settings.pattern,
-    targets.reference,
+  const enclosure = enclosurePlan(settings.enclosure, targets.degrees, settings.rhythm.subdivision, settings.rhythm.tsDen)
+  const rhythm = { ...settings.rhythm, subdivision: enclosure.subdivision }
+  const steps = applyEnclosures(
+    navigate(positions, { ...settings.navigation, weights: effectiveWeights(settings.navigation) }, settings.pattern, targets.reference),
+    { board, targets, options: settings.enclosure, plan: enclosure },
   )
-  const rhythmProblem = rhythmError(settings.rhythm)
+  const rhythmProblem = rhythmError(rhythm)
   if (rhythmProblem) {
     problems.push(rhythmProblem)
   }
-  const bars = rhythmProblem ? [] : layoutBars(steps, notesPerBar(settings.rhythm), settings.navigation.gap)
+  const bars = rhythmProblem ? [] : layoutBars(steps, notesPerBar(rhythm), settings.navigation.gap)
   const title = exerciseTitle(settings)
   const tex = toAlphaTex(bars, {
     title,
     tempo: settings.rhythm.tempo,
     tsNum: settings.rhythm.tsNum,
     tsDen: settings.rhythm.tsDen,
-    subdivision: settings.rhythm.subdivision,
+    subdivision: rhythm.subdivision,
     tuning: board.tuning,
     program: settings.instrument.program,
     tonic: settings.tonic,
     labels: settings.display.labels,
     notation: settings.display.notation,
+    ghostApproaches: settings.enclosure.ghost,
   })
-  return { board, targets, positions, steps, bars, tex, title, problems }
+  return { board, targets, positions, steps, bars, tex, title, problems, enclosure, subdivision: rhythm.subdivision }
 }

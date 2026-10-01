@@ -21,6 +21,8 @@ export interface TexOptions {
   tonic: Tonic
   labels: LabelMode
   notation: NotationMode
+  /** Enclosure notes written as ghost notes: parentheses, played softer. */
+  ghostApproaches: boolean
 }
 
 const quote = (text: string) => '"' + text.replace(/["\\]/g, '') + '"'
@@ -31,11 +33,13 @@ function beat(slot: Slot, o: TexOptions): string {
   }
   const { note } = slot
   // alphaTex numbers strings from the highest one
-  const tex = note.fret + '.' + (o.tuning.length - note.string)
+  const tex = note.fret + '.' + (o.tuning.length - note.string) + (note.approach && o.ghostApproaches ? '{g}' : '')
   if (o.labels === 'none') {
     return tex
   }
-  return tex + ' {txt ' + quote(o.labels === 'degree' ? note.degree : spellDegree(o.tonic, note.degree)) + '}'
+  const label = o.labels === 'degree' ? note.degree : spellDegree(o.tonic, note.degree)
+  // Approach notes are labelled in parentheses so the targets stand out
+  return tex + ' {txt ' + quote(note.approach ? '(' + label + ')' : label) + '}'
 }
 
 // Rest values from a whole to a 32nd, in ticks

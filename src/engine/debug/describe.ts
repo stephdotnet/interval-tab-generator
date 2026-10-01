@@ -6,7 +6,8 @@ import type { Settings } from '../settings'
 
 /** "string:fret" with strings numbered like a tab (1 = highest string). */
 function tabRef(note: FretNote, strings: number): string {
-  return strings - note.string + ':' + note.fret
+  const ref = strings - note.string + ':' + note.fret
+  return note.approach ? '(' + ref + ')' : ref
 }
 
 /** Text dump of an exercise: positions and the notes of each bar, to inspect the engine output. */
@@ -39,7 +40,7 @@ export function compareBestPaths(settings: Settings): string {
       const strings = exercise.board.tuning.length
       const path = exercise.problems.length
         ? '! ' + exercise.problems.join(' ')
-        : exercise.steps.map((s) => (s.kind === 'note' ? tabRef(s.note, strings) : '|')).join(' ')
+        : exercise.steps.map((s) => (s.kind === 'note' ? tabRef(s.note, strings) : s.kind === 'rest' ? '-' : '|')).join(' ')
       lines.push(system.padEnd(6) + preset.padEnd(9) + path)
     }
   }

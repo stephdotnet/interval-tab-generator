@@ -59,8 +59,8 @@ export function rhythmError(r: RhythmOptions): string | null {
 export type Slot = { note: FretNote; position: Position } | null
 
 /**
- * Cuts the steps into bars of `perBar` notes, padding with rests. A gap starts a new bar,
- * and adds a full bar of rest with the "restBar" mode.
+ * Cuts the steps into bars of `perBar` notes, padding with rests. A rest step takes one slot. A gap
+ * starts a new bar, and adds a full bar of rest with the "restBar" mode.
  */
 export function layoutBars(steps: readonly Step[], perBar: number, gap: GapMode): Slot[][] {
   const bars: Slot[][] = []
@@ -79,7 +79,7 @@ export function layoutBars(steps: readonly Step[], perBar: number, gap: GapMode)
       }
       continue
     }
-    current.push({ note: step.note, position: step.position })
+    current.push(step.kind === 'rest' ? null : { note: step.note, position: step.position })
     if (current.length === perBar) {
       flush()
     }

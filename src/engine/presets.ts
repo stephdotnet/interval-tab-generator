@@ -107,6 +107,7 @@ export function presetTags(settings: Settings): string[] {
     systemLabel(settings),
     MODE_LABELS[settings.navigation.mode],
     PATTERN_LABELS[settings.pattern.type],
+    ...(settings.enclosure.enabled ? ['Enclosure ' + settings.enclosure.spec] : []),
     SUBDIVISION_LABELS[settings.rhythm.subdivision],
     settings.rhythm.tempo + ' BPM',
   ]

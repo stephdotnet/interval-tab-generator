@@ -19,7 +19,8 @@ export interface NavigationOptions {
   weights: CostWeights
 }
 
-export type Step = { kind: 'note'; note: FretNote; position: Position } | { kind: 'gap' }
+/** A note, a break between positions ("all" mode), or a single silent slot (enclosure alignment). */
+export type Step = { kind: 'note'; note: FretNote; position: Position } | { kind: 'gap' } | { kind: 'rest' }
 
 export function clampIndex(index: number, length: number): number {
   return Math.min(Math.max(0, index), Math.max(0, length - 1))

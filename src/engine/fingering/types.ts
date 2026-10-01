@@ -9,6 +9,8 @@ export interface FretNote {
   degree: Degree
   /** Played with a finger stretch outside the core window. */
   ext: boolean
+  /** Enclosure note leading to a target, not one of the chosen degrees. */
+  approach?: boolean
 }
 
 export interface Position {

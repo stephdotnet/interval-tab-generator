@@ -6,6 +6,7 @@ import { clampIndex } from './engine/navigation/navigate'
 import { useAlphaTab } from './player/useAlphaTab'
 import { Fretboard } from './ui/Fretboard'
 import { Icon } from './ui/Icon'
+import { EnclosurePanel } from './ui/panels/EnclosurePanel'
 import { FingeringPanel } from './ui/panels/FingeringPanel'
 import { InstrumentPanel } from './ui/panels/InstrumentPanel'
 import { KeyPanel } from './ui/panels/KeyPanel'
@@ -108,7 +109,8 @@ export default function App() {
           <KeyPanel settings={settings} update={update} />
           <FingeringPanel settings={settings} update={update} exercise={exercise} />
           <PatternPanel settings={settings} update={update} />
-          <RhythmPanel settings={settings} update={update} />
+          <EnclosurePanel settings={settings} update={update} exercise={exercise} />
+          <RhythmPanel settings={settings} update={update} exercise={exercise} />
           <InstrumentPanel settings={settings} update={update} />
         </aside>
         <main className="main">
@@ -125,7 +127,7 @@ export default function App() {
               board={exercise.board}
               targets={exercise.targets}
               labels={settings.display.labels === 'none' ? 'degree' : settings.display.labels}
-              used={selected ? selected.notes : used}
+              used={selected ? [...selected.notes, ...used.filter((n) => n.approach)] : used}
               position={slot?.position ?? selected}
               active={slot?.note ?? null}
             />

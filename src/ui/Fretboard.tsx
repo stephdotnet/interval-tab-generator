@@ -35,6 +35,10 @@ export function Fretboard({ board, targets, labels, used, position, active }: Pr
   const x = (fret: number) => (fret === 0 ? LEFT - FRET_W * 0.45 : LEFT + (fret - 0.5) * FRET_W)
   const windowStart = position && (position.lo === 0 ? LEFT - FRET_W * 0.9 : LEFT + (position.lo - 1) * FRET_W)
   const usedKeys = new Set(used.map(key))
+  // Enclosure notes outside the chosen degrees: drawn apart, hollow
+  const approaches = [
+    ...new Map(used.filter((n) => n.approach && !degreeOf(targets, n.midi)).map((n) => [key(n), n])).values(),
+  ]
   const label = (midi: number) => {
     const degree = degreeOf(targets, midi)!
     return labels === 'note' ? spellDegree(targets.tonic, degree) : degree
@@ -120,6 +124,17 @@ export function Fretboard({ board, targets, labels, used, position, active }: Pr
             </g>
           )
         })}
+        {approaches.map((n) => (
+          <g key={'approach-' + key(n)} className={'fb-approach' + (active !== null && key(active) === key(n) ? ' active' : '')}>
+            {active !== null && key(active) === key(n) && <circle className="fb-halo" cx={x(n.fret)} cy={y(n.string)} r={14} />}
+            <circle cx={x(n.fret)} cy={y(n.string)} r={9} />
+            {labels !== 'none' && (
+              <text x={x(n.fret)} y={y(n.string) + 3.5}>
+                {labels === 'note' ? spellDegree(targets.tonic, n.degree) : n.degree}
+              </text>
+            )}
+          </g>
+        ))}
       </svg>
     </div>
   )

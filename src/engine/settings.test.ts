@@ -35,6 +35,17 @@ describe('url', () => {
     s.rhythm = { subdivision: '16t', tsNum: 6, tsDen: 8, tempo: 132 }
     s.display = { labels: 'none', notation: 'scoreTab' }
     s.player = { loop: false, metronome: true, countIn: false, ramp: true, rampStep: 4, rampEvery: 3, rampMax: 180 }
+    s.enclosure = {
+      enabled: true,
+      spec: 'C- D+',
+      direction: 'fixed',
+      specDown: 'D-',
+      targets: 'every',
+      every: 2,
+      scale: 'mixolydian',
+      align: false,
+      ghost: true,
+    }
 
     const query = settingsToQuery(s)
     expect(query).toContain('key=F%23')

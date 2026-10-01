@@ -727,6 +727,21 @@ kbd {
   flex: none;
 }
 
+.enclosure-example {
+  margin: 0;
+  color: var(--muted);
+}
+
+.enclosure-example strong {
+  color: var(--text);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+select:disabled {
+  opacity: 0.6;
+}
+
 /* Library of scales and arpeggios */
 
 .library {
@@ -980,6 +995,28 @@ kbd {
   pointer-events: none;
 }
 
+.fb-approach circle {
+  fill: var(--surface);
+  stroke: #8a8f9c;
+  stroke-width: 1.5;
+  stroke-dasharray: 3 2;
+}
+
+.fb-approach text {
+  fill: var(--muted);
+  font-size: 9px;
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.fb-approach .fb-halo {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 3;
+  stroke-dasharray: none;
+}
+
 .fb-note .fb-halo {
   fill: none;
   stroke: #fff !important;
@@ -996,7 +1033,29 @@ kbd {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fb-note .fb-halo {
+  .fb-approach circle {
+  fill: var(--surface);
+  stroke: #8a8f9c;
+  stroke-width: 1.5;
+  stroke-dasharray: 3 2;
+}
+
+.fb-approach text {
+  fill: var(--muted);
+  font-size: 9px;
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.fb-approach .fb-halo {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 3;
+  stroke-dasharray: none;
+}
+
+.fb-note .fb-halo {
     animation: none;
   }
 }

@@ -1,19 +1,25 @@
 import type { LabelMode, NotationMode } from '../../engine/export/alphatex'
 import { rhythmError, SUBDIVISION_LABELS, SUBDIVISIONS, TIME_DENOMINATORS } from '../../engine/rhythm/rhythm'
+import type { Exercise } from '../../engine/exercise'
 import type { Settings } from '../../engine/settings'
 import { Field, Panel, Segmented, Select } from '../controls'
 import type { UpdateSettings } from '../state/useSettings'
 
-export function RhythmPanel({ settings, update }: { settings: Settings; update: UpdateSettings }) {
+export function RhythmPanel({ settings, update, exercise }: { settings: Settings; update: UpdateSettings; exercise: Exercise }) {
   const { rhythm, display } = settings
+  const imposed = exercise.enclosure.aligned
   return (
     <Panel
       title="Rythme et affichage"
-      summary={SUBDIVISION_LABELS[rhythm.subdivision] + ' · ' + rhythm.tsNum + '/' + rhythm.tsDen}
+      summary={SUBDIVISION_LABELS[exercise.subdivision] + ' · ' + rhythm.tsNum + '/' + rhythm.tsDen}
     >
-      <Field label="Subdivision">
+      <Field
+        label="Subdivision"
+        hint={imposed ? 'Imposée par les enclosures pour garder chaque cible sur un temps.' : undefined}
+      >
         <Select
-          value={rhythm.subdivision}
+          value={exercise.subdivision}
+          disabled={imposed}
           choices={SUBDIVISIONS.map((sub) => ({
             value: sub,
             label: SUBDIVISION_LABELS[sub],

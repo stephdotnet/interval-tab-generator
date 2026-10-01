@@ -1,3 +1,4 @@
+import { APPROACH_SCALE_AUTO, APPROACH_SCALE_CHROMATIC, ENCLOSURE_DIRECTIONS, ENCLOSURE_TARGETS } from './enclosures'
 import { LABEL_MODES, NOTATION_MODES } from './export/alphatex'
 import { CAGED_SHAPES, FINGERING_SYSTEMS, type CagedShape } from './fingering/types'
 import { parseNote } from './theory/pitch'
@@ -7,6 +8,7 @@ import { DIRECTIONS, PAIR_ORDERS, PAIR_PLACEMENTS, PATTERN_TYPES } from './patte
 import { SUBDIVISIONS, TIME_DENOMINATORS } from './rhythm/rhythm'
 import { DEFAULT_SETTINGS, MAX_FRET, sanitizeSettings, type Settings } from './settings'
 import { isDegree, normalizeDegrees } from './theory/degrees'
+import { LIBRARY_ENTRIES } from './theory/library'
 import { TONICS } from './theory/spelling'
 
 const VERSION = '1'
@@ -152,6 +154,24 @@ const FIELDS: Field[] = [
   num('tsn', (s) => s.rhythm.tsNum, (s, v) => (s.rhythm.tsNum = v), 1, 12),
   oneOf('tsd', TIME_DENOMINATORS, (s) => s.rhythm.tsDen, (s, v) => (s.rhythm.tsDen = v)),
   num('bpm', (s) => s.rhythm.tempo, (s, v) => (s.rhythm.tempo = v), 20, 300),
+  // Enclosures
+  bool('enc', (s) => s.enclosure.enabled, (s, v) => (s.enclosure.enabled = v)),
+  text('encs', (s) => s.enclosure.spec, (s, v) => (s.enclosure.spec = v)),
+  oneOf('encd', ENCLOSURE_DIRECTIONS, (s) => s.enclosure.direction, (s, v) => (s.enclosure.direction = v)),
+  text('encs2', (s) => s.enclosure.specDown, (s, v) => (s.enclosure.specDown = v)),
+  oneOf('enct', ENCLOSURE_TARGETS, (s) => s.enclosure.targets, (s, v) => (s.enclosure.targets = v)),
+  num('encn', (s) => s.enclosure.every, (s, v) => (s.enclosure.every = v), 1, 16),
+  {
+    key: 'encsc',
+    read: (s) => s.enclosure.scale,
+    write: (s, raw) => {
+      if (raw === APPROACH_SCALE_AUTO || raw === APPROACH_SCALE_CHROMATIC || LIBRARY_ENTRIES.some((e) => e.id === raw)) {
+        s.enclosure.scale = raw
+      }
+    },
+  },
+  bool('enca', (s) => s.enclosure.align, (s, v) => (s.enclosure.align = v)),
+  bool('encg', (s) => s.enclosure.ghost, (s, v) => (s.enclosure.ghost = v)),
   // Display
   oneOf('lab', LABEL_MODES, (s) => s.display.labels, (s, v) => (s.display.labels = v)),
   oneOf('staff', NOTATION_MODES, (s) => s.display.notation, (s, v) => (s.display.notation = v)),

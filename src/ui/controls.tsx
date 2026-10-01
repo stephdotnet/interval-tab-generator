@@ -120,16 +120,19 @@ export function Select<T extends string | number>({
   choices,
   onChange,
   ariaLabel,
+  disabled,
 }: {
   value: T
   choices: Choice<T>[]
   onChange: (value: T) => void
   ariaLabel?: string
+  disabled?: boolean
 }) {
   return (
     <select
       value={String(value)}
       aria-label={ariaLabel}
+      disabled={disabled}
       onChange={(e) => {
         const choice = choices.find((c) => String(c.value) === e.target.value)
         if (choice) {

@@ -1,3 +1,4 @@
+import { APPROACH_SCALE_AUTO, type EnclosureOptions } from './enclosures'
 import type { LabelMode, NotationMode } from './export/alphatex'
 import type { FingeringOptions } from './fingering/types'
 import { findInstrument } from './instrument/presets'
@@ -57,6 +58,7 @@ export interface Settings {
   fingering: FingeringOptions
   navigation: NavigationSettings
   pattern: PatternOptions
+  enclosure: EnclosureOptions
   rhythm: RhythmOptions
   display: DisplaySettings
   player: PlayerSettings
@@ -106,6 +108,17 @@ export const DEFAULT_SETTINGS: Settings = {
     pairOrder: 'refFirst',
     pairPlacement: 'above',
   },
+  enclosure: {
+    enabled: false,
+    spec: 'D+ C-',
+    direction: 'line',
+    specDown: 'C- D+',
+    targets: 'all',
+    every: 3,
+    scale: APPROACH_SCALE_AUTO,
+    align: true,
+    ghost: false,
+  },
   rhythm: { subdivision: '8', tsNum: 4, tsDen: 4, tempo: 80 },
   display: { labels: 'degree', notation: 'tab' },
   player: { loop: true, metronome: false, countIn: true, ramp: false, rampStep: 5, rampEvery: 2, rampMax: 160 },
@@ -137,6 +150,7 @@ export function sanitizeSettings(s: Settings): Settings {
       npsPerString: clamp(s.fingering.npsPerString, 1, 5),
       npsMaxSpan: clamp(s.fingering.npsMaxSpan, 2, 8),
     },
+    enclosure: { ...s.enclosure, every: clamp(s.enclosure.every, 1, 16) },
     rhythm: { ...s.rhythm, tempo: clamp(s.rhythm.tempo, 20, 300), tsNum: clamp(s.rhythm.tsNum, 1, 12) },
   }
 }
