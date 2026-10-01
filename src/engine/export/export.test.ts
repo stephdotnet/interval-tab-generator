@@ -60,7 +60,7 @@ describe('alphaTex', () => {
     const exercise = buildExercise(settings((s) => (s.navigation.positionIndex = 6)))
     const { score, diagnostics } = parse(exercise.tex)
     expect(diagnostics).toEqual([])
-    expect(score.title).toBe('C seconde majeure (1 2)')
+    expect(score.title).toBe('C majeur (1 3 5)')
     expect(score.tempo).toBe(80)
     expect(score.tracks[0].staves[0].tuning).toEqual([64, 59, 55, 50, 45, 40])
     expect(score.tracks[0].playbackInfo.program).toBe(25)

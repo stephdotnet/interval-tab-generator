@@ -66,7 +66,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   tonic: 'C',
-  degrees: ['1', '2'],
+  degrees: ['1', '3', '5'],
   instrument: {
     presetId: 'guitar6',
     tuningId: 'standard',
@@ -121,7 +121,7 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   rhythm: { subdivision: '8', tsNum: 4, tsDen: 4, tempo: 80 },
   display: { labels: 'degree', notation: 'tab' },
-  player: { loop: true, metronome: false, countIn: true, ramp: false, rampStep: 5, rampEvery: 2, rampMax: 160 },
+  player: { loop: true, metronome: false, countIn: false, ramp: false, rampStep: 5, rampEvery: 2, rampMax: 160 },
 }
 
 export function effectiveWeights(navigation: NavigationSettings): CostWeights {
